@@ -39,7 +39,12 @@ export default function Page() {
       }),
     });
     const data = await finalState.json();
-    console.log(data);
+    console.log(data.messages);
+    console.log("length : " + data.messages.length);
+    console.log(
+      "Final message : " +
+        data.messages[data.messages.length - 1].kwargs.content,
+    );
   };
 
   return (
@@ -47,17 +52,20 @@ export default function Page() {
       <section className="mx-auto flex h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <header className="border-b border-slate-200 px-5 py-4">
           <h1 className="text-lg font-semibold text-slate-900">Chatbot</h1>
-          <p className="text-sm text-slate-500">Simple chat interface (UI only)</p>
+          <p className="text-sm text-slate-500">
+            Simple chat interface (UI only)
+          </p>
         </header>
 
         <div className="flex-1 space-y-3 overflow-y-auto p-4">
-          {messages.map((message,index) => (
+          {messages.map((message, index) => (
             <div
               key={index}
-              className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${message.role === "user"
-                ? "ml-auto bg-slate-900 text-white"
-                : "mr-auto bg-slate-100 text-slate-900"
-                }`}
+              className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+                message.role === "user"
+                  ? "ml-auto bg-slate-900 text-white"
+                  : "mr-auto bg-slate-100 text-slate-900"
+              }`}
             >
               {message.text}
             </div>
