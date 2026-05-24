@@ -28,9 +28,14 @@ export default function Page() {
     setMessages(updatedMessages);
     setInput("");
 
+    // Abrot controller :Although the browser automatically aborts pending requests on refresh, it is best practice to manage this explicitly using an AbortController so you can cancel it during cleanup or if the user sends multiple messages
+    const controller = new AbortController();
+
     // Invoke the graph using the updated list of messages
     const finalState = await fetch("api/chat", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal, // Pass the abort signal
       body: JSON.stringify({
         messages: updatedMessages.map((m) => ({
           role: m.role === "assistant" ? "assistant" : "user",
@@ -38,13 +43,17 @@ export default function Page() {
         })),
       }),
     });
+    // data recieved from backend
     const data = await finalState.json();
-    console.log(data.messages);
-    console.log("length : " + data.messages.length);
-    console.log(
-      "Final message : " +
-        data.messages[data.messages.length - 1].kwargs.content,
-    );
+    // Get the assistant's content
+    const assistantText =
+      data.messages[data.messages.length - 1].kwargs.content;
+
+    // Append the assistant's message to the state
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", text: assistantText },
+    ]);
   };
 
   return (
@@ -79,7 +88,7 @@ export default function Page() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type a message..."
-              className="h-11 flex-1 rounded-xl border border-slate-300 px-3 text-sm outline-none transition focus:border-slate-500"
+              className="h-11 flex-1 text-black rounded-xl border border-slate-300 px-3 text-sm outline-none transition focus:border-slate-500"
             />
             <button
               type="submit"
