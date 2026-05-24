@@ -19,23 +19,25 @@ export default function Page() {
     const value = input.trim();
     if (!value) return;
 
-    setMessages((prev) => [
-      ...prev,
+    // Construct the updated messages array immediately because state updates in React are asynchronous
+    const updatedMessages: Message[] = [
+      ...messages,
       { role: "user", text: value },
-      // { role: "assistant", text: "This is a UI-only demo response." },
-    ]);
+    ];
+
+    setMessages(updatedMessages);
     setInput("");
 
-    // Involing the graph
+    // Invoke the graph using the updated list of messages
     const finalState = await fetch("api/chat", {
       method: "POST",
       body: JSON.stringify({
-        messages: [...messages].map((m) => ({
+        messages: updatedMessages.map((m) => ({
           role: m.role === "assistant" ? "assistant" : "user",
           content: m.text,
         })),
       }),
-    })
+    });
     const data = await finalState.json();
     console.log(data);
   };

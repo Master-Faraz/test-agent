@@ -3,7 +3,7 @@ import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
 
 // Initialize the agent
 const llm = new ChatGoogleGenerativeAI({
-  model: "gemini-2.5-flash-lite",
+  model: "gemini-2.5-flash",
   temperature: 0,
   maxRetries: 2,
   apiKey:process.env.GOOGLE_API_KEY
