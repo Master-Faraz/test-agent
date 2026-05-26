@@ -12,9 +12,9 @@ type Inputs = {
   message: string;
 };
 const Chats = () => {
+  // message state to store all the messages
   const [messages, setMessages] = useState<messageType[]>([
-    { role: "agent", message: "Hello how can i help you ??" },
-    { role: "user", message: "Hey" },
+    { role: "assistant", message: "Hello how can i help you ??" },
   ]);
 
   const {
@@ -22,12 +22,29 @@ const Chats = () => {
     handleSubmit,
     // formState: { errors },
   } = useForm<Inputs>();
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
+
+  // submit function of the form
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    // get the data and make it so that we can send it to the input
     setMessages((prev) => [...prev, { role: "user", message: data.message }]);
-    
-      setMessages((prev) => [...prev, { role: "agent", message: "hello" }]);
-    
-    console.log(messages)
+    console.log(messages);
+
+    setMessages((prev) => [...prev, { role: "assistant", message: "hello" }]);
+
+    // invoke the api call
+    // Invoke the graph using the updated list of messages
+    const finalState = await fetch("api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: messages.map((m) => ({
+          role: m.role === "assistant" ? "assistant" : "user",
+          content: m.message,
+        })),
+      }),
+    });
+
+    console.log(messages);
   };
 
   return (
@@ -43,7 +60,7 @@ const Chats = () => {
           {messages.map((obj, index) => (
             <div
               key={index}
-              className={`rounded-full p-2.5 text-sm text-black  max-w-[75%] ${obj.role === "agent" ? " bg-emerald-200 mr-auto" : "ml-auto bg-slate-900 text-slate-100"} `}
+              className={`rounded-full p-2.5 text-sm text-black  max-w-[75%] ${obj.role === "assistant" ? " bg-emerald-200 mr-auto" : "ml-auto bg-slate-900 text-slate-100"} `}
             >
               <span className="mx-2.5">{obj.message}</span>
             </div>
