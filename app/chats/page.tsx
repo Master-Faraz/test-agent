@@ -59,7 +59,8 @@ const Chats = () => {
       const responseData = await finalState.json();
 
       // Safely extract the assistant's content
-      const lastMessage = responseData.messages?.[responseData.messages.length - 1];
+      const lastMessage =
+        responseData.messages?.[responseData.messages.length - 1];
       const assistantText =
         lastMessage?.kwargs?.content ||
         lastMessage?.content ||
@@ -74,7 +75,10 @@ const Chats = () => {
       console.error("Failed to fetch chat response:", err);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", message: "Something went wrong. Please try again." },
+        {
+          role: "assistant",
+          message: "Something went wrong. Please try again.",
+        },
       ]);
     }
   };
@@ -94,7 +98,9 @@ const Chats = () => {
               key={index}
               className={`rounded-full p-2.5 text-sm text-black  max-w-[75%] ${obj.role === "assistant" ? " bg-emerald-200 mr-auto" : "ml-auto bg-slate-900 text-slate-100"} `}
             >
-              <span className="mx-2.5">{obj.message}</span>
+              {typeof obj.message === "string" ? (
+                <span className="mx-2.5">{obj.message}</span>
+              ) : null}
             </div>
           ))}
         </section>

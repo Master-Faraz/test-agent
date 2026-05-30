@@ -5,14 +5,14 @@ import { TavilySearch } from "@langchain/tavily";
 
 // Tavily search tool for internet calling
 const web_search_tool = new TavilySearch({
-  maxResults: 3,
+  maxResults: 1,
   topic: "general",
   // includeAnswer: false,
   // includeRawContent: false,
   // includeImages: false,
   // includeImageDescriptions: false,
   // searchDepth: "basic",
-  // timeRange: "day",
+  timeRange: "day",
   // includeDomains: [],
   // excludeDomains: [],
 });
@@ -24,8 +24,17 @@ const toolNode = new ToolNode(tools);
 
 // function to telling the agent should call the tool or continue
 
-const shouldContinue = () => {
-  // logic here
+const shouldContinue = (state: typeof MessagesAnnotation.State) => {
+  // checking the state
+  console.log("state calling");
+  console.log(state);
+
+  // checking if tool calling is done or not
+  const lastMessage = state.messages[state.messages.length - 1];
+  if (lastMessage?.tool_calls?.length) {
+    console.log("GOING TO TOOLS");
+    return "tools";
+  }
   return "__end__";
 };
 
@@ -61,6 +70,7 @@ const workflow = new StateGraph(MessagesAnnotation) // MessagesAnnotation is the
   .addNode("tools", toolNode)
   .addEdge("__start__", "agent")
   .addEdge("agent", "__end__")
+  .addEdge("tools", "agent")
   .addConditionalEdges("agent", shouldContinue);
 
 /*
