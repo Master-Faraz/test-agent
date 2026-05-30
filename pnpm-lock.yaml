@@ -17,6 +17,9 @@ importers:
       '@langchain/langgraph':
         specifier: ^1.1.4
         version: 1.1.4(@langchain/core@1.1.45)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.3.6)
+      '@langchain/tavily':
+        specifier: ^1.2.0
+        version: 1.2.0(@langchain/core@1.1.45)
       lucide-react:
         specifier: ^1.16.0
         version: 1.16.0(react@19.2.3)
@@ -410,6 +413,12 @@ packages:
     peerDependenciesMeta:
       zod-to-json-schema:
         optional: true
+
+  '@langchain/tavily@1.2.0':
+    resolution: {integrity: sha512-aPLPgtw8+b/Rnr3H+X8H8z98T/Y7JuCE4B5eqRDHoEWgZvMDUFF7divqwQqCTMq2deQttlVrm5bN5JbKaAR7/w==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@langchain/core': ^1.0.0
 
   '@napi-rs/wasm-runtime@0.2.12':
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
@@ -2454,6 +2463,11 @@ snapshots:
     transitivePeerDependencies:
       - react
       - react-dom
+
+  '@langchain/tavily@1.2.0(@langchain/core@1.1.45)':
+    dependencies:
+      '@langchain/core': 1.1.45
+      zod: 4.3.6
 
   '@napi-rs/wasm-runtime@0.2.12':
     dependencies:

@@ -1,20 +1,48 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { TavilySearch } from "@langchain/tavily";
+
+// Tavily search tool for internet calling
+const web_search_tool = new TavilySearch({
+  maxResults: 3,
+  topic: "general",
+  // includeAnswer: false,
+  // includeRawContent: false,
+  // includeImages: false,
+  // includeImageDescriptions: false,
+  // searchDepth: "basic",
+  // timeRange: "day",
+  // includeDomains: [],
+  // excludeDomains: [],
+});
+
+// initializing the tool node
+const tools = [web_search_tool];
+
+const toolNode = new ToolNode(tools);
+
+// function to telling the agent should call the tool or continue
+
+const shouldContinue = () => {
+  // logic here
+  return "__end__";
+};
 
 // Initialize the agent
 const llm = new ChatGoogleGenerativeAI({
-  model: "gemini-2.5-flash",
+  model: "gemini-2.5-flash-lite",
   temperature: 0,
   maxRetries: 2,
-  apiKey:process.env.GOOGLE_API_KEY
-});
+  apiKey: process.env.GOOGLE_API_KEY,
+}).bindTools(tools);
 
 /*
     1. define node functions 
     2. Build the graph 
     3. compile and invoke the graph
 */
-export async function callModel(state) {
+export async function callModel(state: typeof MessagesAnnotation.State) {
   console.log("Calling the LLM");
   /*
     call the llm using the api
@@ -30,8 +58,10 @@ export async function callModel(state) {
 
 const workflow = new StateGraph(MessagesAnnotation) // MessagesAnnotation is the initial structure of the state
   .addNode("agent", callModel)
+  .addNode("tools", toolNode)
   .addEdge("__start__", "agent")
-  .addEdge("agent", "__end__");
+  .addEdge("agent", "__end__")
+  .addConditionalEdges("agent", shouldContinue);
 
 /*
 

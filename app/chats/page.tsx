@@ -20,31 +20,63 @@ const Chats = () => {
   const {
     register,
     handleSubmit,
+    reset,
     // formState: { errors },
   } = useForm<Inputs>();
 
   // submit function of the form
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    // get the data and make it so that we can send it to the input
-    setMessages((prev) => [...prev, { role: "user", message: data.message }]);
-    console.log(messages);
+    const userMsg = data.message.trim();
+    if (!userMsg) return;
 
-    setMessages((prev) => [...prev, { role: "assistant", message: "hello" }]);
+    // Construct the updated messages array immediately to avoid stale React state
+    const updatedMessages: messageType[] = [
+      ...messages,
+      { role: "user", message: userMsg },
+    ];
 
-    // invoke the api call
-    // Invoke the graph using the updated list of messages
-    const finalState = await fetch("api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: messages.map((m) => ({
-          role: m.role === "assistant" ? "assistant" : "user",
-          content: m.message,
-        })),
-      }),
-    });
+    // Optimistically update the UI with the user's message and clear input
+    setMessages(updatedMessages);
+    reset();
 
-    console.log(messages);
+    try {
+      // Invoke the graph using the updated list of messages and correct absolute URL
+      const finalState = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: updatedMessages.map((m) => ({
+            role: m.role === "assistant" ? "assistant" : "user",
+            content: m.message,
+          })),
+        }),
+      });
+
+      if (!finalState.ok) {
+        throw new Error(`API returned status ${finalState.status}`);
+      }
+
+      const responseData = await finalState.json();
+
+      // Safely extract the assistant's content
+      const lastMessage = responseData.messages?.[responseData.messages.length - 1];
+      const assistantText =
+        lastMessage?.kwargs?.content ||
+        lastMessage?.content ||
+        "I could not retrieve a valid response.";
+
+      // Append the assistant's response to the message state
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", message: assistantText },
+      ]);
+    } catch (err) {
+      console.error("Failed to fetch chat response:", err);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", message: "Something went wrong. Please try again." },
+      ]);
+    }
   };
 
   return (

@@ -31,29 +31,46 @@ export default function Page() {
     // Abrot controller :Although the browser automatically aborts pending requests on refresh, it is best practice to manage this explicitly using an AbortController so you can cancel it during cleanup or if the user sends multiple messages
     const controller = new AbortController();
 
-    // Invoke the graph using the updated list of messages
-    const finalState = await fetch("api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: controller.signal, // Pass the abort signal
-      body: JSON.stringify({
-        messages: updatedMessages.map((m) => ({
-          role: m.role === "assistant" ? "assistant" : "user",
-          content: m.text,
-        })),
-      }),
-    });
-    // data recieved from backend
-    const data = await finalState.json();
-    // Get the assistant's content
-    const assistantText =
-      data.messages[data.messages.length - 1].kwargs.content;
+    try {
+      // Invoke the graph using the updated list of messages
+      const finalState = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal, // Pass the abort signal
+        body: JSON.stringify({
+          messages: updatedMessages.map((m) => ({
+            role: m.role === "assistant" ? "assistant" : "user",
+            content: m.text,
+          })),
+        }),
+      });
 
-    // Append the assistant's message to the state
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", text: assistantText },
-    ]);
+      if (!finalState.ok) {
+        throw new Error(`API returned status ${finalState.status}`);
+      }
+
+      // data recieved from backend
+      const data = await finalState.json();
+      
+      // Get the assistant's content safely
+      const lastMessage = data.messages?.[data.messages.length - 1];
+      const assistantText =
+        lastMessage?.kwargs?.content ||
+        lastMessage?.content ||
+        "I could not retrieve a valid response.";
+
+      // Append the assistant's message to the state
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: assistantText },
+      ]);
+    } catch (err) {
+      console.error("Failed to fetch chat response:", err);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: "Something went wrong. Please check your connection and try again." },
+      ]);
+    }
   };
 
   return (
